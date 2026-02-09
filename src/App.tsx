@@ -1,7 +1,12 @@
 import { Input } from "./components/Input";
 
 function App() {
-  return <Input label="Name" id="name" placeholder="Enter your name" />;
+  return (
+    <main>
+      <Input id="name" label="Your Name" type="text" />
+      <Input id="age" label="Your Age" type="number" />
+      </main>
+  );
 }
 
 export default App;
