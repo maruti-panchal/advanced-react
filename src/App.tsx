@@ -1,14 +1,16 @@
-import { Button } from "./components/Button";
-import { Input } from "./components/Input";
+import AddTimer from './components/AddTimer.tsx';
+import Header from './components/Header.tsx';
+import Timers from './components/Timers.tsx';
 
 function App() {
   return (
-    <main>
-      <Input id="name" label="Your Name" type="text" />
-      <Input id="age" label="Your Age" type="number" />
-      <Button el="button" onClick={() => alert('Button clicked!')}>Click Me</Button>
-      <Button el="anchor" href="https://www.google.com">Go to Example</Button>
+    <>
+      <Header />
+      <main>
+        <AddTimer />
+        <Timers />
       </main>
+    </>
   );
 }
 
