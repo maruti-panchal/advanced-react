@@ -82,24 +82,45 @@
 import Header from './productComponents/Header.tsx';
 import Shop from './productComponents/Shop.tsx';
 import Product from './productComponents/Product.tsx';
-import { DUMMY_PRODUCTS } from './dummy-products.ts'; // Ensure this path is correct based on your project structure
-import { Provider } from 'react-redux';
-import { store } from './redux/store.ts';
+import { Provider, useSelector} from 'react-redux';
+import { RootState, store } from './redux/store.ts';
+import { useAppDispatch } from './redux/hooks.ts';
+import { fetchProducts } from './redux/product-slice.ts';
+import { useEffect } from 'react';
 
-function App() {
+function AppContent() {
+  const dispatch = useAppDispatch();
+
+  const { items, isLoading } = useSelector(
+    (state: RootState) => state.product
+  );
+
+  useEffect(() => {
+    dispatch(fetchProducts());
+  }, [dispatch]);
+
   return (
     <>
-    <Provider store={store}>
       <Header />
+
       <Shop>
-        {DUMMY_PRODUCTS.map((product) => (
+        {isLoading && <p>Loading...</p>}
+
+        {items.map((product) => (
           <li key={product.id}>
             <Product {...product} />
           </li>
         ))}
       </Shop>
-    </Provider>
     </>
+  );
+}
+
+function App() {
+  return (
+    <Provider store={store}>
+      <AppContent />
+    </Provider>
   );
 }
 
