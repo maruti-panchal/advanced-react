@@ -1,8 +1,8 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
-type User = {
-  email: string;
-};
+// type User = {
+//   email: string;
+// };
 
 interface AuthState {
   token: string | null;

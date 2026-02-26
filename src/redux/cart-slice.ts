@@ -22,6 +22,7 @@ const cartSlice = createSlice({
   initialState,
   reducers: {
     setCart(state, action: PayloadAction<CartState>) {
+      console.log("Updating cart state:", state);
       return action.payload;
     },
     clearCartState() {
