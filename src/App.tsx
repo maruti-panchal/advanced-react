@@ -1,94 +1,27 @@
-// import AddTimer from './components/AddTimer.tsx';
-// import Header from './components/Header.tsx';
-// import TimersContextProvider from './components/store/timers-context.tsx';
-// import Timers from './components/Timers.tsx';
+import { Provider, useSelector } from "react-redux";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { useEffect } from "react";
 
-// import { ReactNode, useEffect, useState } from "react";
-// import { get } from "./utils/http";
-// import BlogPosts, { BlogPost } from "./components/BlogPosts";
-// import fetchingImg from "./assets/data-fetching.png";
+import { RootState, store } from "./redux/store";
+import { useAppDispatch } from "./redux/hooks";
+import { fetchProducts } from "./redux/product-slice";
+import { loginSuccess } from "./redux/auth-slice";
 
-// function App() {
-//   return (
-//     <>
-//       <TimersContextProvider>
-//         <Header />
-//         <main>
-//           <AddTimer />
-//           <Timers />
-//         </main>
-//       </TimersContextProvider>
-//     </>
-//   );
-// }
+import Header from "./productComponents/Header";
+import Shop from "./productComponents/Shop";
+import Product from "./productComponents/Product";
 
-// export default App;
+import Login from "./productComponents/Auth/Login";
+import Signup from "./productComponents/Auth/Signup";
+import OAuthSuccess from "./productComponents/Auth/OAuthSuccess";
+import ProtectedRoute from "./productComponents/ProtectedRoute";
+import PublicRoute from "./productComponents/PublicRoute";
+import { fetchCartApi } from "./utils/cartApi";
+import { setCart } from "./redux/cart-slice";
+import AdminRoute from "./productComponents/AdminRoute";
+import AdminDashboard from "./productComponents/AdminDashboard";
 
-// type RawDataBlogPost={
-//   id:number;
-//   title:string;
-//   body:string;
-// }
-
-// const App = () => {
-//   const [fetchedPosts, setFetchedPosts] =useState<BlogPost[]>([]);
-//   const [isFetching, setIsFetching] = useState(false);
-//   const [fetchError, setFetchError] = useState<string | null>(null);
-
-//   useEffect(() => {
-//     async function fetchPosts() {
-//       setIsFetching(true);
-//       try {
-//          const data = await get('https://jsonplaceholder.typicode.com/posts') as RawDataBlogPost[];
-//       const blogPosts = data.map(rawPost=>{
-//         return{
-//           id:rawPost.id,
-//           title:rawPost.title,
-//           text:rawPost.body
-//         }
-//       });
-//       setFetchedPosts(blogPosts);
-//       } catch (error) {
-//         if(error instanceof Error){
-//           console.error("Error fetching blog posts:", error.message);
-//         }else{
-//           console.error("Unknown error fetching blog posts:", error);
-//         }
-//         setFetchError("Failed to Fetch Blog Posts");
-//       }
-//         setIsFetching(false);
-//     }
-//       fetchPosts();
-//   }, []);
-
-// let content:ReactNode;
-
-// if(fetchedPosts){
-//   content=<BlogPosts posts={fetchedPosts}/>
-// } 
-
-// if(isFetching){
-//   content=<p id="loading-fallback">Loading...</p>
-// }
-//   return <main>
-//     <img src={fetchingImg} alt="Data Fetching"/>
-//     {content}
-//   </main>
-// }
-
-// export default App
-
-
-import Header from './productComponents/Header.tsx';
-import Shop from './productComponents/Shop.tsx';
-import Product from './productComponents/Product.tsx';
-import { Provider, useSelector} from 'react-redux';
-import { RootState, store } from './redux/store.ts';
-import { useAppDispatch } from './redux/hooks.ts';
-import { fetchProducts } from './redux/product-slice.ts';
-import { useEffect } from 'react';
-
-function AppContent() {
+function Home() {
   const dispatch = useAppDispatch();
 
   const { items, isLoading } = useSelector(
@@ -100,19 +33,88 @@ function AppContent() {
   }, [dispatch]);
 
   return (
-    <>
+    <Shop>
+      {isLoading && (
+        <p style={{ textAlign: "center" }}>
+          Loading...
+        </p>
+      )}
+
+      {items.map((product) => (
+        <li key={product.id}>
+          <Product {...product} />
+        </li>
+      ))}
+    </Shop>
+  );
+}
+
+function AppContent() {
+  const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const role = localStorage.getItem("role");
+
+    if (token && role) {
+      dispatch(
+        loginSuccess({
+          token,
+          email: "restored-user",
+          role,
+        })
+      );
+
+      fetchCartApi().then((cart) => {
+        dispatch(setCart(cart));
+      });
+    }
+  }, [dispatch]);
+
+  return (
+    <BrowserRouter>
       <Header />
 
-      <Shop>
-        {isLoading && <p>Loading...</p>}
+      <Routes>
+        <Route
+          path="/login"
+          element={
+            <PublicRoute>
+              <Login />
+            </PublicRoute>
+          }
+        />
 
-        {items.map((product) => (
-          <li key={product.id}>
-            <Product {...product} />
-          </li>
-        ))}
-      </Shop>
-    </>
+      <Route
+        path="/signup"
+        element={
+          <PublicRoute>
+            <Signup />
+          </PublicRoute>
+        }
+      />
+
+      <Route
+        path="/admin"
+        element={
+          <AdminRoute>
+          <AdminDashboard />
+          </AdminRoute>
+        }
+      />
+
+    <Route path="/oauth-success" element={<OAuthSuccess />} />
+
+    <Route
+      path="/"
+      element={
+        <ProtectedRoute>
+          <Home />
+        </ProtectedRoute>
+      }
+    />
+</Routes>
+    </BrowserRouter>
   );
 }
 

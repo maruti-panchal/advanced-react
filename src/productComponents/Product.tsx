@@ -1,6 +1,6 @@
-import { useDispatch } from "react-redux";
-import { addItemToCart } from "../redux/cart-slice";
-import {useAppDispatch} from "../redux/hooks";
+import { useAppDispatch } from "../redux/hooks";
+import { setCart } from "../redux/cart-slice";
+import { addToCartApi } from "../utils/cartApi";
 
 type ProductProps = {
   id: string;
@@ -18,10 +18,15 @@ export default function Product({
   description,
 }: ProductProps) {
 
-  const dispatch = useAppDispatch ();
+  const dispatch = useAppDispatch();
 
-  function handleAddToCart() {
-    dispatch(addItemToCart({ id, title, price }));
+  async function handleAddToCart() {
+    try {
+      const updatedCart = await addToCartApi(id, 1);
+      dispatch(setCart(updatedCart));
+    } catch (error) {
+      alert("Failed to add item");
+    }
   }
 
   return (

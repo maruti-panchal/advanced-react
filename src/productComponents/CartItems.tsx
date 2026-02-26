@@ -1,52 +1,79 @@
-import { addItemToCart, removeItemFromCart } from "../redux/cart-slice";
 import { useAppDispatch, useCartSelector } from "../redux/hooks";
+import { setCart } from "../redux/cart-slice";
+import {
+  addToCartApi,
+  removeFromCartApi,
+  clearCartApi,
+} from "../utils/cartApi";
 
 export default function CartItems() {
-  const cartItems = useCartSelector((state) => state.cart.items);
   const dispatch = useAppDispatch();
+  const cart = useCartSelector((state) => state.cart);
 
-  const totalPrice = cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
-  const formattedTotalPrice = `$${totalPrice.toFixed(2)}`;
-
-  function handleAddToCart(item: { id: string; title: string; price: number }) {
-    dispatch(addItemToCart(item));
+  async function handleIncrease(productId: string) {
+    const updatedCart = await addToCartApi(productId, 1);
+    dispatch(setCart(updatedCart));
   }
 
-  function handleRemoveFromCart(itemId: string) {
-    dispatch(removeItemFromCart(itemId));
+  async function handleDecrease(
+    productId: string,
+    quantity: number
+  ) {
+    if (quantity === 1) {
+      const updatedCart = await removeFromCartApi(productId);
+      dispatch(setCart(updatedCart));
+    } else {
+      const updatedCart = await addToCartApi(productId, -1);
+      dispatch(setCart(updatedCart));
+    }
   }
+
+  async function handleClearCart() {
+    const updatedCart = await clearCartApi();
+    dispatch(setCart(updatedCart));
+  }
+
   return (
     <div id="cart">
-      {cartItems.length === 0 ? (
+      {cart.items.length === 0 ? (
         <p>No items in cart!</p>
       ) : (
         <>
           <ul id="cart-items">
-            {cartItems.map((item) => {
-              const formattedPrice = `$${item.price.toFixed(2)}`;
-
-            return (
-              <li key={item.id}>
+            {cart.items.map((item) => (
+              <li key={item.productId}>
                 <div>
-                  <span>{item.title}</span>
-                  <span> ({formattedPrice})</span>
+                  <span>{item.productId}</span>
                 </div>
+
                 <div className="cart-item-actions">
-                  <button onClick={() => handleRemoveFromCart(item.id)}>
+                  <button
+                    onClick={() =>
+                      handleDecrease(item.productId, item.quantity)
+                    }
+                  >
                     -
                   </button>
+
                   <span>{item.quantity}</span>
-                  <button onClick={() => handleAddToCart(item)}>+</button>
+
+                  <button
+                    onClick={() =>
+                      handleIncrease(item.productId)
+                    }
+                  >
+                    +
+                  </button>
                 </div>
               </li>
-            );
-          })}
-        </ul>
+            ))}
+          </ul>
+
+          <button onClick={handleClearCart} id="cart-actions">
+            Clear Cart
+          </button>
         </>
       )}
-      <p id="cart-total-price">
-        Cart Total: <strong>${formattedTotalPrice}</strong>
-      </p>
     </div>
   );
 }

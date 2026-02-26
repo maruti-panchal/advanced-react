@@ -7,7 +7,7 @@ import {
 } from "./product-slice";
 
 function fetchProductsAPI() {
-  return fetch("https://fakestoreapi.com/products")
+  return fetch("http://localhost:8080/products")
     .then(res => res.json());
 }
 
